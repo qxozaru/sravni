@@ -1,0 +1,42 @@
+{% extends 'main/base.html' %}
+{% block title %}Добавить цену — {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="form-card reveal">
+                <h2 style="font-weight:800;font-size:1.4rem;margin-bottom:.5rem">
+                    <i class="bi bi-currency-dollar text-brand"></i> Добавить цену
+                </h2>
+                <p class="text-muted mb-4" style="font-size:.88rem">
+                    Товар: <a href="{% url 'product_detail' slug=product.slug %}" class="fw-bold text-decoration-none text-brand">{{ product.name }}</a>
+                </p>
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size:.85rem">{{ field.label }}</label>
+                        {% if field.name == 'is_available' %}
+                        <div class="form-check form-switch mt-1">
+                            {{ field }}
+                            <label class="form-check-label" style="font-size:.88rem">Товар в наличии</label>
+                        </div>
+                        {% else %}
+                        {{ field }}
+                        {% endif %}
+                        {% if field.errors %}
+                        <div style="color:var(--red);font-size:.8rem;margin-top:.3rem">{% for e in field.errors %}{{ e }}{% endfor %}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="submit" class="btn-brand flex-fill"><i class="bi bi-check-lg"></i> Сохранить</button>
+                        <a href="{% url 'product_detail' slug=product.slug %}" class="btn-outline">Отмена</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

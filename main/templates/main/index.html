@@ -1,0 +1,146 @@
+{% extends 'main/base.html' %}{% load humanize %}
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="hero-section">
+    <div class="container position-relative" style="z-index:2">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <h1 class="reveal">Сравни цены —<br><span>сэкономь</span> на покупках</h1>
+                <p class="reveal reveal-d1 mt-3 mb-4">
+                    Мгновенное сравнение цен в DNS, М.Видео, Ситилинк и Эльдорадо.
+                    Находите лучшие предложения на электронику в Красноярске.
+                </p>
+                <div class="d-flex gap-3 flex-wrap reveal reveal-d2">
+                    <div class="stat-pill"><strong>{{ total_products }}</strong> товаров</div>
+                    <div class="stat-pill"><strong>{{ total_stores }}</strong> магазина</div>
+                    <div class="stat-pill"><strong>10</strong> категорий</div>
+                </div>
+            </div>
+            <div class="col-lg-6 reveal reveal-d3">
+                <div class="hero-search">
+                    <form action="{% url 'product_list' %}" method="get" class="d-flex w-100">
+                        <input type="text" name="q" placeholder="iPhone 15, MacBook, Galaxy S24…" autocomplete="off">
+                        <button type="submit"><i class="bi bi-search"></i> Найти</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container py-4">
+
+    <!-- Категории -->
+    {% if categories %}
+    <div class="section-head reveal">
+        <h2><i class="bi bi-grid-3x3-gap text-brand"></i> Категории</h2>
+        <a href="{% url 'product_list' %}">Все товары <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="d-flex gap-2 flex-wrap mb-5">
+        {% for cat in categories %}
+        <a href="{% url 'product_list' %}?category={{ cat.slug }}" class="cat-chip anim-reveal">
+            <span class="emoji">{{ cat.icon }}</span> {{ cat.name }}
+            <span class="text-muted" style="font-size:.75rem">({{ cat.product_count }})</span>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Магазины -->
+    <div class="section-head anim-reveal">
+        <h2><i class="bi bi-shop text-brand"></i> Магазины</h2>
+        <a href="{% url 'store_list' %}">Все <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="d-flex gap-3 flex-wrap mb-5">
+        {% for store in stores %}
+        <a href="{% url 'store_detail' slug=store.slug %}" class="store-badge text-decoration-none anim-reveal">
+            <span class="store-dot" style="background:{{ store.color }}"></span>
+            {{ store.name }}
+            <span class="text-muted" style="font-size:.78rem">({{ store.product_count }})</span>
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Популярные товары -->
+    {% if popular_products %}
+    <div class="section-head anim-reveal">
+        <h2><i class="bi bi-fire text-brand"></i> Популярные товары</h2>
+        <a href="{% url 'product_list' %}?sort=popular">Все <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="row g-3 mb-5">
+        {% for product in popular_products %}
+        <div class="col-6 col-md-4 col-lg-3 anim-reveal">
+            <a href="{% url 'product_detail' slug=product.slug %}" class="text-decoration-none">
+                <div class="s-card h-100">
+                    <div class="card-img">
+                        {% if product.image_url %}
+                        <img src="{{ product.image_url }}" alt="{{ product.name }}" loading="lazy">
+                        {% else %}
+                        <div class="img-placeholder"><i class="bi bi-image"></i></div>
+                        {% endif %}
+                    </div>
+                    <div class="p-3">
+                        {% if product.brand %}
+                        <div class="text-muted" style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px">{{ product.brand }}</div>
+                        {% endif %}
+                        <div class="fw-bold truncate-2 mt-1" style="font-size:.92rem;color:var(--dark)">{{ product.name }}</div>
+                        <div class="d-flex justify-content-between align-items-end mt-2">
+                            {% if product.min_price %}
+                            <div>
+                                <div class="text-muted" style="font-size:.7rem">от</div>
+                                <div class="price-tag best">{{ product.min_price|floatformat:0|intcomma }} ₽</div>
+                            </div>
+                            {% endif %}
+                            <span class="badge-stores"><i class="bi bi-shop"></i> {{ product.store_count }}</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Скидки -->
+    {% if discounted_prices %}
+    <div class="section-head anim-reveal">
+        <h2><i class="bi bi-percent text-brand"></i> Скидки</h2>
+    </div>
+    <div class="row g-3 mb-5">
+        {% for p in discounted_prices %}
+        <div class="col-sm-6 col-md-4 col-lg-3 anim-reveal">
+            <a href="{% url 'product_detail' slug=p.product.slug %}" class="text-decoration-none">
+                <div class="s-card">
+                    <div class="card-img" style="height:160px">
+                        {% if p.product.image_url %}
+                        <img src="{{ p.product.image_url }}" alt="" loading="lazy">
+                        {% else %}
+                        <div class="img-placeholder"><i class="bi bi-image"></i></div>
+                        {% endif %}
+                        {% if p.discount_percent %}
+                        <div class="badge-sale">-{{ p.discount_percent }}%</div>
+                        {% endif %}
+                    </div>
+                    <div class="p-3">
+                        <div class="fw-bold truncate-2" style="font-size:.88rem;color:var(--dark)">{{ p.product.name }}</div>
+                        <div class="store-badge mt-2 mb-2" style="font-size:.78rem">
+                            <span class="store-dot" style="background:{{ p.store.color }}"></span>{{ p.store.name }}
+                        </div>
+                        <div class="d-flex align-items-baseline gap-2">
+                            <span class="price-tag best">{{ p.price|floatformat:0|intcomma }} ₽</span>
+                            {% if p.old_price %}
+                            <del class="text-muted" style="font-size:.85rem">{{ p.old_price|floatformat:0|intcomma }} ₽</del>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

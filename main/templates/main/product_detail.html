@@ -1,0 +1,197 @@
+{% extends 'main/base.html' %}{% load humanize %}
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" style="font-size:.85rem">
+        <a href="{% url 'index' %}" class="text-decoration-none text-muted">Главная</a>
+        <span class="text-muted mx-1">/</span>
+        <a href="{% url 'product_list' %}" class="text-decoration-none text-muted">Каталог</a>
+        {% if product.category %}
+        <span class="text-muted mx-1">/</span>
+        <a href="{% url 'product_list' %}?category={{ product.category.slug }}" class="text-decoration-none text-muted">{{ product.category.name }}</a>
+        {% endif %}
+        <span class="text-muted mx-1">/</span>
+        <span class="fw-600">{{ product.name|truncatewords:5 }}</span>
+    </nav>
+
+    <div class="row g-4 mb-4">
+        <!-- Изображение -->
+        <div class="col-md-5 reveal">
+            <div class="s-card p-4" style="border:none;box-shadow:var(--shadow)">
+                <div style="height:340px;display:flex;align-items:center;justify-content:center">
+                    {% if product.image_url %}
+                    <img src="{{ product.image_url }}" alt="{{ product.name }}" style="max-height:100%;max-width:100%;object-fit:contain" class="float-anim">
+                    {% else %}
+                    <div class="img-placeholder" style="font-size:5rem"><i class="bi bi-image"></i></div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Инфо -->
+        <div class="col-md-7 reveal reveal-d1">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    {% if product.brand %}
+                    <div class="text-muted mb-1" style="font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:1px">{{ product.brand }}</div>
+                    {% endif %}
+                    <h1 style="font-weight:800;font-size:1.8rem;line-height:1.2;letter-spacing:-.5px">{{ product.name }}</h1>
+                    {% if product.category %}
+                    <span class="badge-cat mt-2 d-inline-block">{{ product.category.icon }} {{ product.category.name }}</span>
+                    {% endif %}
+                </div>
+                {% if user.is_authenticated %}
+                <button class="btn-ghost fav-btn" data-url="{% url 'toggle_favorite' product.id %}" data-csrf="{{ csrf_token }}"
+                        style="font-size:1.6rem;{% if is_favorite %}color:var(--red){% endif %}">
+                    <i class="bi bi-heart{% if is_favorite %}-fill{% endif %}"></i>
+                </button>
+                {% endif %}
+            </div>
+
+            {% if product.description %}
+            <p class="text-muted mt-3" style="line-height:1.6">{{ product.description }}</p>
+            {% endif %}
+
+            <!-- Price summary -->
+            {% if product.min_price %}
+            <div class="d-flex gap-3 flex-wrap mt-3 mb-3">
+                <div class="p-3 rounded-3" style="background:var(--green-bg)">
+                    <div class="text-muted" style="font-size:.72rem;font-weight:600">Лучшая цена</div>
+                    <div class="mono" style="font-size:1.8rem;font-weight:800;color:var(--green)">{{ product.min_price|floatformat:0|intcomma }} ₽</div>
+                </div>
+                {% if product.savings %}
+                <div class="p-3 rounded-3" style="background:var(--yellow-bg)">
+                    <div class="text-muted" style="font-size:.72rem;font-weight:600">Экономия до</div>
+                    <div class="mono" style="font-size:1.8rem;font-weight:800;color:var(--yellow)">{{ product.savings|floatformat:0|intcomma }} ₽</div>
+                </div>
+                {% endif %}
+                <div class="p-3 rounded-3" style="background:var(--blue-bg)">
+                    <div class="text-muted" style="font-size:.72rem;font-weight:600">Магазинов</div>
+                    <div style="font-size:1.8rem;font-weight:800;color:var(--blue)">{{ product.store_count }}</div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if user.is_authenticated %}
+            <a href="{% url 'add_price' product.id %}" class="btn-brand mt-2">
+                <i class="bi bi-plus-lg"></i> Добавить цену
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Таблица сравнения цен -->
+    <div class="reveal reveal-d2">
+        <div class="section-head">
+            <h2><i class="bi bi-bar-chart text-brand"></i> Сравнение цен</h2>
+        </div>
+
+        {% if prices %}
+        <div class="s-card" style="overflow:hidden">
+            <div class="table-responsive">
+                <table class="cmp-table">
+                    <thead>
+                        <tr>
+                            <th>Магазин</th>
+                            <th>Цена</th>
+                            <th>Старая цена</th>
+                            <th>Скидка</th>
+                            <th>Наличие</th>
+                            <th>Ссылка</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in prices %}
+                        <tr class="{% if p.is_cheapest and p.is_available %}row-best{% endif %}">
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="store-dot" style="background:{{ p.store.color }}"></span>
+                                    <a href="{% url 'store_detail' slug=p.store.slug %}" class="fw-bold text-decoration-none" style="color:var(--dark)">
+                                        {{ p.store.name }}
+                                    </a>
+                                    {% if p.is_cheapest and p.is_available %}
+                                    <span class="badge-cheapest-row">Лучшая цена</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="mono fw-bold" style="font-size:1.15rem;{% if p.is_cheapest and p.is_available %}color:var(--green){% endif %}">
+                                    {{ p.price|floatformat:0|intcomma }} ₽
+                                </span>
+                            </td>
+                            <td>
+                                {% if p.old_price %}
+                                <del class="text-muted mono">{{ p.old_price|floatformat:0|intcomma }} ₽</del>
+                                {% else %}—{% endif %}
+                            </td>
+                            <td>
+                                {% if p.discount_percent %}
+                                <span style="background:var(--red-bg);color:var(--red);font-weight:700;padding:2px 8px;border-radius:5px;font-size:.82rem">-{{ p.discount_percent }}%</span>
+                                {% else %}—{% endif %}
+                            </td>
+                            <td>
+                                {% if p.is_available %}
+                                <span class="badge-available"><i class="bi bi-check-circle-fill"></i> В наличии</span>
+                                {% else %}
+                                <span class="badge-unavailable"><i class="bi bi-x-circle-fill"></i> Нет</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if p.product_url %}
+                                <a href="{{ p.product_url }}" target="_blank" class="btn-outline" style="font-size:.8rem;padding:.3rem .7rem">
+                                    <i class="bi bi-box-arrow-up-right"></i> Перейти
+                                </a>
+                                {% else %}—{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-clipboard-x" style="font-size:3rem;color:var(--gray-light)"></i>
+            <h5 class="mt-3 fw-bold">Цены пока не добавлены</h5>
+            {% if user.is_authenticated %}
+            <a href="{% url 'add_price' product.id %}" class="btn-brand mt-2"><i class="bi bi-plus-lg"></i> Добавить цену</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Похожие -->
+    {% if similar %}
+    <div class="mt-5 anim-reveal">
+        <div class="section-head">
+            <h2><i class="bi bi-arrow-left-right text-brand"></i> Похожие товары</h2>
+        </div>
+        <div class="row g-3">
+            {% for s in similar %}
+            <div class="col-6 col-md-3">
+                <a href="{% url 'product_detail' slug=s.slug %}" class="text-decoration-none">
+                    <div class="s-card">
+                        <div class="card-img" style="height:160px">
+                            {% if s.image_url %}
+                            <img src="{{ s.image_url }}" alt="" loading="lazy">
+                            {% else %}
+                            <div class="img-placeholder"><i class="bi bi-image"></i></div>
+                            {% endif %}
+                        </div>
+                        <div class="p-3">
+                            <div class="fw-bold truncate-2" style="font-size:.85rem;color:var(--dark)">{{ s.name }}</div>
+                            {% if s.min_p %}
+                            <div class="price-tag best mt-1" style="font-size:1rem">{{ s.min_p|floatformat:0|intcomma }} ₽</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

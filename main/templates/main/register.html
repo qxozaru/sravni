@@ -1,0 +1,41 @@
+{% extends 'main/base.html' %}
+{% block title %}Регистрация{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+            <div class="form-card reveal">
+                <div class="text-center mb-4">
+                    <div class="logo-icon mx-auto mb-3" style="width:52px;height:52px;border-radius:14px">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px">
+                            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
+                        </svg>
+                    </div>
+                    <h2 style="font-weight:800;font-size:1.5rem">Регистрация</h2>
+                    <p class="text-muted" style="font-size:.88rem">Создайте аккаунт и сравнивайте цены</p>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size:.85rem">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                        <div style="color:var(--red);font-size:.8rem;margin-top:.3rem">{% for e in field.errors %}{{ e }}{% endfor %}</div>
+                        {% endif %}
+                        {% if field.help_text %}
+                        <div class="text-muted" style="font-size:.78rem;margin-top:.2rem">{{ field.help_text }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    <button type="submit" class="btn-brand w-100 mt-2" style="padding:.7rem">Создать аккаунт</button>
+                </form>
+                <p class="text-center mt-3 mb-0 text-muted" style="font-size:.88rem">
+                    Уже есть аккаунт? <a href="{% url 'login' %}" class="text-brand fw-bold text-decoration-none">Войти</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'main/base.html' %}
+{% block title %}Добавить товар{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="form-card reveal">
+                <h2 style="font-weight:800;font-size:1.4rem;margin-bottom:1.5rem">
+                    <i class="bi bi-plus-circle text-brand"></i> Добавить товар
+                </h2>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size:.85rem">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                        <div style="color:var(--red);font-size:.8rem;margin-top:.3rem">{% for e in field.errors %}{{ e }}{% endfor %}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="submit" class="btn-brand flex-fill"><i class="bi bi-check-lg"></i> Добавить</button>
+                        <a href="{% url 'product_list' %}" class="btn-outline">Отмена</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

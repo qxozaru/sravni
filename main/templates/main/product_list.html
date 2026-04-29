@@ -1,0 +1,127 @@
+{% extends 'main/base.html' %}{% load humanize %}
+{% block title %}Каталог{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 style="font-weight:800;font-size:1.6rem;margin-bottom:1.5rem">
+        <i class="bi bi-grid-3x3-gap text-brand"></i> Каталог товаров
+        {% if query %}<span class="text-muted" style="font-size:1rem;font-weight:500"> — «{{ query }}»</span>{% endif %}
+    </h1>
+
+    <div class="row g-4">
+        <!-- Фильтры -->
+        <div class="col-lg-3">
+            <div class="filter-panel">
+                <form method="get">
+                    <div class="mb-3">
+                        <label>Поиск</label>
+                        <input type="text" class="form-input" name="q" value="{{ query }}" placeholder="Название, бренд…">
+                    </div>
+                    <div class="mb-3">
+                        <label>Категория</label>
+                        <select name="category" class="form-input">
+                            <option value="">Все</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat.slug }}" {% if current_category == cat.slug %}selected{% endif %}>{{ cat.icon }} {{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Бренд</label>
+                        <select name="brand" class="form-input">
+                            <option value="">Все</option>
+                            {% for b in brands %}
+                            <option value="{{ b }}" {% if current_brand == b %}selected{% endif %}>{{ b }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Цена от — до</label>
+                        <div class="d-flex gap-2">
+                            <input type="number" class="form-input" name="price_min" value="{{ current_price_min }}" placeholder="0" style="width:50%">
+                            <input type="number" class="form-input" name="price_max" value="{{ current_price_max }}" placeholder="∞" style="width:50%">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Наличие</label>
+                        <select name="available" class="form-input">
+                            <option value="">Все</option>
+                            <option value="yes" {% if current_available == 'yes' %}selected{% endif %}>В наличии</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Сортировка</label>
+                        <select name="sort" class="form-input">
+                            <option value="popular" {% if current_sort == 'popular' %}selected{% endif %}>По популярности</option>
+                            <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>Сначала дешёвые</option>
+                            <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>Сначала дорогие</option>
+                            <option value="new" {% if current_sort == 'new' %}selected{% endif %}>Новинки</option>
+                            <option value="name" {% if current_sort == 'name' %}selected{% endif %}>По названию</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-brand w-100"><i class="bi bi-funnel"></i> Применить</button>
+                    <a href="{% url 'product_list' %}" class="btn-outline w-100 mt-2 text-center d-block">Сбросить</a>
+                </form>
+            </div>
+        </div>
+
+        <!-- Товары -->
+        <div class="col-lg-9">
+            {% if products %}
+            <div class="row g-3">
+                {% for product in products %}
+                <div class="col-6 col-md-4 anim-reveal">
+                    <a href="{% url 'product_detail' slug=product.slug %}" class="text-decoration-none">
+                        <div class="s-card h-100">
+                            <div class="card-img">
+                                {% if product.image_url %}
+                                <img src="{{ product.image_url }}" alt="{{ product.name }}" loading="lazy">
+                                {% else %}
+                                <div class="img-placeholder"><i class="bi bi-image"></i></div>
+                                {% endif %}
+                            </div>
+                            <div class="p-3">
+                                {% if product.brand %}
+                                <div class="text-muted" style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px">{{ product.brand }}</div>
+                                {% endif %}
+                                <div class="fw-bold truncate-2 mt-1" style="font-size:.9rem;color:var(--dark)">{{ product.name }}</div>
+                                {% if product.category %}
+                                <span class="badge-cat mt-2 d-inline-block">{{ product.category.icon }} {{ product.category.name }}</span>
+                                {% endif %}
+                                <div class="d-flex justify-content-between align-items-end mt-2">
+                                    {% if product.min_p %}
+                                    <div>
+                                        <div class="text-muted" style="font-size:.68rem">от</div>
+                                        <div class="price-tag best">{{ product.min_p|floatformat:0|intcomma }} ₽</div>
+                                    </div>
+                                    {% if product.min_p != product.max_p %}
+                                    <div class="text-end">
+                                        <div class="text-muted" style="font-size:.68rem">до</div>
+                                        <div class="text-muted mono" style="font-size:.85rem">{{ product.max_p|floatformat:0|intcomma }} ₽</div>
+                                    </div>
+                                    {% endif %}
+                                    {% else %}
+                                    <span class="text-muted" style="font-size:.85rem">Нет цен</span>
+                                    {% endif %}
+                                </div>
+                                <div class="mt-2">
+                                    <span class="badge-stores"><i class="bi bi-shop"></i> {{ product.shop_count }} магазин{{ product.shop_count|pluralize:"а,ов" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-search" style="font-size:3.5rem;color:var(--gray-light)"></i>
+                <h4 class="mt-3 fw-bold">Ничего не найдено</h4>
+                <p class="text-muted">Попробуйте изменить параметры поиска</p>
+                <a href="{% url 'product_list' %}" class="btn-brand">Сбросить фильтры</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

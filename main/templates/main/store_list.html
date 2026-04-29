@@ -1,0 +1,34 @@
+{% extends 'main/base.html' %}{% load humanize %}
+{% block title %}Магазины{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 style="font-weight:800;font-size:1.6rem;margin-bottom:1.5rem">
+        <i class="bi bi-shop text-brand"></i> Магазины
+    </h1>
+
+    <div class="row g-4">
+        {% for store in stores %}
+        <div class="col-sm-6 col-lg-3 anim-reveal">
+            <a href="{% url 'store_detail' slug=store.slug %}" class="text-decoration-none">
+                <div class="s-card text-center p-4 h-100">
+                    <div style="width:64px;height:64px;border-radius:14px;margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;font-size:2rem;color:#fff;background:{{ store.color }}">
+                        <i class="bi bi-shop-window"></i>
+                    </div>
+                    <h5 class="fw-bold mb-1" style="color:var(--dark)">{{ store.name }}</h5>
+                    {% if store.address %}
+                    <p class="text-muted" style="font-size:.82rem"><i class="bi bi-geo-alt"></i> {{ store.address }}</p>
+                    {% endif %}
+                    <span class="badge-stores"><i class="bi bi-box-seam"></i> {{ store.product_count }} товаров</span>
+                    {% if store.website %}
+                    <div class="mt-2">
+                        <span class="text-muted" style="font-size:.78rem"><i class="bi bi-globe"></i> {{ store.website|truncatechars:25 }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

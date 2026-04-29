@@ -1,0 +1,86 @@
+{% extends 'main/base.html' %}{% load humanize %}
+{% block title %}Личный кабинет{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 style="font-weight:800;font-size:1.6rem;margin-bottom:1.5rem">
+        <i class="bi bi-person-circle text-brand"></i> Личный кабинет
+    </h1>
+
+    <div class="row g-4">
+        <div class="col-md-5">
+            <div class="form-card reveal">
+                <div class="text-center mb-3">
+                    {% if user.profile.avatar %}
+                    <img src="{{ user.profile.avatar.url }}" class="avatar" style="width:90px;height:90px" alt="">
+                    {% else %}
+                    <div class="avatar d-flex align-items-center justify-content-center mx-auto" style="width:90px;height:90px;background:var(--bg);font-size:2.2rem;color:var(--brand)">
+                        <i class="bi bi-person"></i>
+                    </div>
+                    {% endif %}
+                    <h4 class="fw-bold mt-2 mb-0">{{ user.username }}</h4>
+                    <p class="text-muted" style="font-size:.85rem">{{ user.email }}</p>
+                </div>
+                <div class="divider"></div>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size:.85rem">Имя</label>
+                        <input type="text" name="first_name" class="form-input" value="{{ form.first_name.value|default:'' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size:.85rem">Фамилия</label>
+                        <input type="text" name="last_name" class="form-input" value="{{ form.last_name.value|default:'' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size:.85rem">Email</label>
+                        <input type="email" name="email" class="form-input" value="{{ form.email.value|default:'' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size:.85rem">Город</label>
+                        {{ form.city }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size:.85rem">Аватар</label>
+                        <input type="file" name="avatar" class="form-input" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn-brand w-100"><i class="bi bi-check-lg"></i> Сохранить</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="form-card reveal reveal-d1">
+                <h4 class="fw-bold mb-3"><i class="bi bi-heart-fill" style="color:var(--red)"></i> Избранное</h4>
+                {% if favorites %}
+                {% for fav in favorites %}
+                <div class="d-flex justify-content-between align-items-center py-2 {% if not forloop.last %}border-bottom{% endif %}">
+                    <div class="d-flex align-items-center gap-3">
+                        {% if fav.product.image_url %}
+                        <img src="{{ fav.product.image_url }}" style="width:48px;height:48px;object-fit:contain;border-radius:8px;background:var(--bg)">
+                        {% endif %}
+                        <div>
+                            <a href="{% url 'product_detail' slug=fav.product.slug %}" class="fw-bold text-decoration-none" style="color:var(--dark);font-size:.9rem">{{ fav.product.name }}</a>
+                            {% if fav.product.min_price %}
+                            <div class="price-tag best" style="font-size:.9rem">от {{ fav.product.min_price|floatformat:0|intcomma }} ₽</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <form method="post" action="{% url 'toggle_favorite' fav.product.id %}">
+                        {% csrf_token %}
+                        <button class="btn-ghost" style="color:var(--red)"><i class="bi bi-trash"></i></button>
+                    </form>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-heart" style="font-size:2.5rem;color:var(--gray-light)"></i>
+                    <p class="text-muted mt-2">Нет избранных товаров</p>
+                    <a href="{% url 'product_list' %}" class="btn-outline" style="font-size:.85rem">Перейти в каталог</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
